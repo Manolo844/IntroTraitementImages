@@ -20,3 +20,13 @@ def homography_apply(H, x1, y1):
     y2 = (h21 * x1 + h22 * y1 + h23)/(h31 * x1 + h32 * y1 + h33)
 
     return (x2, y2)
+
+def homography_extraction(I1, x, y, w, h):
+    x2 = [0, 0, w, w]
+    y2 = [0, h, 0, h]
+    H = homography_estimate(x, y, x2, y2)
+    I2 = np.zeros((h, w, 3))
+    for i in range(h):
+        for j in range(w):
+            I2[i][j] = homography_apply(H, x[i][j], y[i][j])
+    return I2
