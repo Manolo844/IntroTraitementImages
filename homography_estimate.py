@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 def homography_estimate(x1, y1, x2, y2):
     return
 
-def homography_apply(H, x1, x2):
+def homography_apply(H, x1, y1):
     # extraire les coefs de H
     h11 = H[0][0]
     h12 = H[0][1]
