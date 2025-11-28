@@ -24,6 +24,11 @@ def is_in_quadrangle(X, Y, x, y):
     return cond
 
 
+def is_in_quadrangle_homography(H, x, y, size=100):
+    u, v = homography_apply(H, x, y)
+    return (0 <= u <= size) and (0 <= v <= size)
+
+
 def homography_estimate(x1, y1, x2, y2):
     H = np.array([[0,0,0],[0,0,0],[0,0,1]])
     A=np.zeros((8,8))
@@ -69,20 +74,26 @@ def homography_extraction(I1, x, y, w, h):
     return I2
 
 def homography_cross_projection(I, x1, y1, x2, y2):
-    translate_x = min(x2) + 1
-    x2_translated = [x - translate_x for x in x2]
-    translate_y = min(y2) + 1
-    y2_translated = [y - translate_y for y in y2]
 
-    h, w = max(y2) - min(y2), max(x2) - min(x2)
-    H = homography_estimate(x2_translated, y2_translated, x1, y1)
-    I_res = np.zeros((h, w, 3), dtype=I.dtype)
+    h, w = I.shape[0], I.shape[1]
+    I_res = I.copy()
+
+    H21 = homography_estimate(x2, y2, x1, y1)
+    H12 = homography_estimate(x1, y1, x2, y2)
+
     for i in range(h):
         for j in range(w):
-            if is_in_quadrangle(x2_translated, y2_translated, j, i):
-                x_i, y_i = homography_apply(H, j, i)
-                I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
+            if is_in_quadrangle(x1, y1, j, i):
+                x_i, y_i = homography_apply(H12, j, i)
+                if 0 <= round(x_i) < w and 0 <= round(y_i) < h:
+                    I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
+            if is_in_quadrangle(x2, y2, j, i):
+                x_i, y_i = homography_apply(H21, j, i)
+                if 0 <= round(x_i) < w and 0 <= round(y_i) < h:
+                    I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
+
     return I_res
+
 
 def homography_projection(I1, I2, x, y):
     h_src, w_src = I1.shape[0], I1.shape[1]
