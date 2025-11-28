@@ -1,6 +1,29 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def cross_product(A, B, C):
+    # fait le produit vectoriel de AB et AC
+    res = (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])
+    return res
+
+def is_in_quadrangle(X, Y, x, y):
+    # X et Y sont les vecteurs des abscisses et ordonnées des points
+    # on teste si P est dans le quadrangle ABCD /!\ doivent être dans l'ordre
+    A = [X[0], Y[0]]
+    B = [X[1], Y[1]]
+    D = [X[2], Y[2]]
+    C = [X[3], Y[3]]
+    P = [x, y]
+
+    cp1 = cross_product(A, B, P)
+    cp2 = cross_product(B, C, P)
+    cp3 = cross_product(C, D, P)
+    cp4 = cross_product(D, A, P)
+
+    cond = (cp1 >= 0 and cp2 >= 0 and cp3 >= 0 and cp4 >= 0) or (cp1 <= 0 and cp2 <= 0 and cp3 <= 0 and cp4 <= 0)
+    return cond
+
+
 def homography_estimate(x1, y1, x2, y2):
     H = np.array([[0,0,0],[0,0,0],[0,0,1]])
     A=np.zeros((8,8))
@@ -35,7 +58,6 @@ def homography_apply(H, x1, y1):
     return (x2, y2)
 
 def homography_extraction(I1, x, y, w, h):
-    borne_I1 = I1.shape
     x2 = [0, w, 0, w]
     y2 = [0, 0, h, h]
     H = homography_estimate(x2, y2, x, y)
@@ -46,15 +68,52 @@ def homography_extraction(I1, x, y, w, h):
             I2[i, j] = I1[int(round(y_i)), int(round(x_i))]
     return I2
 
+def homography_cross_projection(I, x1, y1, x2, y2):
+    translate_x = min(x2) + 1
+    x2_translated = [x - translate_x for x in x2]
+    translate_y = min(y2) + 1
+    y2_translated = [y - translate_y for y in y2]
+
+    h, w = max(y2) - min(y2), max(x2) - min(x2)
+    H = homography_estimate(x2_translated, y2_translated, x1, y1)
+    I_res = np.zeros((h, w, 3), dtype=I.dtype)
+    for i in range(h):
+        for j in range(w):
+            if is_in_quadrangle(x2_translated, y2_translated, j, i):
+                x_i, y_i = homography_apply(H, j, i)
+                I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
+    return I_res
+
 def main():
-    image_tour = plt.imread('img/tour.jpg')
+
+    ## Test de homography_extraction
+    image = plt.imread('img/block_terre.jpeg')
     # A -- B
     # |    |
     # C -- D
-    points_x = [122, 524, 130, 542]
-    points_y = [289, 96, 817, 737]
+    points_x = [539, 955, 631, 957]
+    points_y = [281, 539, 704, 999]
 
-    I2 = homography_extraction(image_tour, points_x, points_y, 2000, 2000)
+    I2 = homography_extraction(image, points_x, points_y, 400, 400)
+    plt.imshow(I2)
+    plt.show()
+
+    ## Test de homography_cross_projection
+    image = plt.imread('img/block_terre.jpeg')
+    # A -- B
+    # |    |
+    # C -- D
+    points_x1 = [539, 955, 631, 957]
+    points_y1 = [281, 539, 704, 999]
+
+    points_x2 = [962, 1379, 540, 956]
+    points_y2 = [129, 284, 281, 539]
+
+    print(is_in_quadrangle(points_x2, points_y2, 950, 322))
+
+    print(max(points_x2) - min(points_x2), max(points_y2) - min(points_y2))
+
+    I2 = homography_cross_projection(image, points_x1, points_y1, points_x2, points_y2)
     plt.imshow(I2)
     plt.show()
 
