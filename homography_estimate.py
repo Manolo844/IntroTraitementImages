@@ -46,6 +46,25 @@ def homography_extraction(I1, x, y, w, h):
             I2[i, j] = I1[int(round(y_i)), int(round(x_i))]
     return I2
 
+
+def homography_projection(I1, I2, x, y):
+    h_src, w_src = I1.shape[0], I1.shape[1]
+    h_dst, w_dst = I2.shape[0], I2.shape[1]
+
+    x_src = [0, w_src, 0, w_src]
+    y_src = [0, 0, h_src, h_src]
+
+    H = homography_estimate(x, y, x_src, y_src)
+    I3 = I2.copy()
+
+    for i in range(0, h_dst ):
+        for j in range(0, w_dst ):
+            x_i, y_i = homography_apply(H, j, i)
+            if 0 <= round(x_i) < w_src and 0 <= round(y_i) < h_src:
+                I3[i, j] = I1[round(y_i), round(x_i)]
+                
+    return I3
+
 def main():
     image_tour = plt.imread('img/tour.jpg')
     # A -- B
@@ -56,6 +75,11 @@ def main():
 
     I2 = homography_extraction(image_tour, points_x, points_y, 2000, 2000)
     plt.imshow(I2)
+    plt.show()
+
+    image_grass= plt.imread('img/grass.jpg')
+    I3=homography_projection(image_grass, image_tour, points_x, points_y)
+    plt.imshow(I3)
     plt.show()
 
 if __name__ == '__main__':
