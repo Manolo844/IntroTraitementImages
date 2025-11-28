@@ -81,13 +81,19 @@ def homography_cross_projection(I, x1, y1, x2, y2):
     H21 = homography_estimate(x2, y2, x1, y1)
     H12 = homography_estimate(x1, y1, x2, y2)
 
+    x_carre = [0, 100, 0, 100]
+    y_carre = [0, 0, 100, 100]
+
+    H1c = homography_estimate(x1, y1, x_carre, y_carre)
+    H2c = homography_estimate(x2, y2, x_carre, y_carre)
+
     for i in range(h):
         for j in range(w):
-            if is_in_quadrangle(x1, y1, j, i):
+            if is_in_quadrangle_homography(H1c, j, i, 100):
                 x_i, y_i = homography_apply(H12, j, i)
                 if 0 <= round(x_i) < w and 0 <= round(y_i) < h:
                     I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
-            if is_in_quadrangle(x2, y2, j, i):
+            if is_in_quadrangle_homography(H2c, j, i, 100):
                 x_i, y_i = homography_apply(H21, j, i)
                 if 0 <= round(x_i) < w and 0 <= round(y_i) < h:
                     I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
@@ -116,44 +122,50 @@ def homography_projection(I1, I2, x, y):
 def main():
 
     # images
-    image_tour = plt.imread('img/tour.jpg')
-    image_grass = plt.imread('img/block_terre.jpeg')
-
-
-    ## Test de homography_extraction
     # A -- B
     # |    |
     # C -- D
-    points_x = [539, 955, 631, 957]
-    points_y = [281, 539, 704, 999]
+    image_tour = plt.imread('img/tour.jpg')
 
-    I2 = homography_extraction(image_grass, points_x, points_y, 400, 400)
+    points_x_tour_side = [123, 524, 131, 542]
+    points_y_tour_side = [288, 96, 817, 740]
+
+    image_grass = plt.imread('img/block_terre.jpeg')
+
+    points_x_terre_side = [539, 955, 631, 957]
+    points_y_terre_side = [281, 539, 704, 999]
+
+    points_x_terre_top = [962, 1379, 540, 956]
+    points_y_terre_top = [129, 284, 281, 539]
+
+    image_tableaux = plt.imread('img/tableaux.jpg')
+
+    points_x_tableaux1 = [762, 940, 755, 933]
+    points_y_tableaux1 = [244, 236, 486, 506]
+
+    points_x_tableaux2 = [93, 328, 94, 329]
+    points_y_tableaux2 = [181, 212, 550, 520]
+
+
+    ## Test de homography_extraction
+    
+    I2 = homography_extraction(image_grass, points_x_terre_side, points_y_terre_side, 400, 400)
     plt.imshow(I2)
     plt.show()
 
     ## Test de homography_cross_projection
-    # A -- B
-    # |    |
-    # C -- D
-    points_x1 = [539, 955, 631, 957]
-    points_y1 = [281, 539, 704, 999]
 
-    points_x2 = [962, 1379, 540, 956]
-    points_y2 = [129, 284, 281, 539]
-
-    I2 = homography_cross_projection(image_grass, points_x1, points_y1, points_x2, points_y2)
+    I2 = homography_cross_projection(image_grass, points_x_terre_side, points_y_terre_side, points_x_terre_top, points_y_terre_top)
     plt.imshow(I2)
     plt.show()
 
-    ## Test de homography_projection
-    # A -- B
-    # |    |
-    # C -- D
+    I4 = homography_cross_projection(image_tableaux, points_x_tableaux1, points_y_tableaux1, points_x_tableaux2, points_y_tableaux2)
+    plt.imshow(I4)
+    plt.show()
 
-    points_x3 = [123, 524, 131, 542]
-    points_y3 = [288, 96, 817, 740]
-    image_grass= plt.imread('img/block_terre.jpeg')
-    I3=homography_projection(image_grass, image_tour, points_x3, points_y3)
+    ## Test de homography_projection
+
+    I3 = homography_projection(image_grass, image_tour, points_x_tour_side, points_y_tour_side)
     plt.imshow(I3)
     plt.show()
 
