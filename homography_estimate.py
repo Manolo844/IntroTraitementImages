@@ -84,22 +84,43 @@ def homography_cross_projection(I, x1, y1, x2, y2):
                 I_res[i, j] = I[int(round(y_i)), int(round(x_i))]
     return I_res
 
+def homography_projection(I1, I2, x, y):
+    h_src, w_src = I1.shape[0], I1.shape[1]
+    h_dst, w_dst = I2.shape[0], I2.shape[1]
+
+    x_src = [0, w_src, 0, w_src]
+    y_src = [0, 0, h_src, h_src]
+
+    H = homography_estimate(x, y, x_src, y_src)
+    I3 = I2.copy()
+
+    for i in range(0, h_dst ):
+        for j in range(0, w_dst ):
+            x_i, y_i = homography_apply(H, j, i)
+            if 0 <= round(x_i) < w_src and 0 <= round(y_i) < h_src:
+                I3[i, j] = I1[round(y_i), round(x_i)]
+                
+    return I3
+
 def main():
 
+    # images
+    image_tour = plt.imread('img/tour.jpg')
+    image_grass = plt.imread('img/block_terre.jpeg')
+
+
     ## Test de homography_extraction
-    image = plt.imread('img/block_terre.jpeg')
     # A -- B
     # |    |
     # C -- D
     points_x = [539, 955, 631, 957]
     points_y = [281, 539, 704, 999]
 
-    I2 = homography_extraction(image, points_x, points_y, 400, 400)
+    I2 = homography_extraction(image_grass, points_x, points_y, 400, 400)
     plt.imshow(I2)
     plt.show()
 
     ## Test de homography_cross_projection
-    image = plt.imread('img/block_terre.jpeg')
     # A -- B
     # |    |
     # C -- D
@@ -109,12 +130,20 @@ def main():
     points_x2 = [962, 1379, 540, 956]
     points_y2 = [129, 284, 281, 539]
 
-    print(is_in_quadrangle(points_x2, points_y2, 950, 322))
-
-    print(max(points_x2) - min(points_x2), max(points_y2) - min(points_y2))
-
-    I2 = homography_cross_projection(image, points_x1, points_y1, points_x2, points_y2)
+    I2 = homography_cross_projection(image_grass, points_x1, points_y1, points_x2, points_y2)
     plt.imshow(I2)
+    plt.show()
+
+    ## Test de homography_projection
+    # A -- B
+    # |    |
+    # C -- D
+
+    points_x3 = [123, 524, 131, 542]
+    points_y3 = [288, 96, 817, 740]
+    image_grass= plt.imread('img/block_terre.jpeg')
+    I3=homography_projection(image_grass, image_tour, points_x3, points_y3)
+    plt.imshow(I3)
     plt.show()
 
 if __name__ == '__main__':
