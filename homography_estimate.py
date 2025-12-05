@@ -119,6 +119,48 @@ def homography_projection(I1, I2, x, y):
                 
     return I3
 
+def mib_transform(mib, H):
+    # extraction des composantes
+    mask = mib[0]
+    image = mib[1]
+    border = mib[2]
+
+    corners_x = [0, image.shape[1], 0, image.shape[1]]
+    corners_y = [0, 0, image.shape[0], image.shape[0]]
+
+    # calcul de la nouvelle boite englobante
+    new_corners_x = []
+    new_corners_y = []
+
+    for i in range(4):
+        x, y = homography_apply(H, corners_x[i], corners_y[i])
+        new_corners_x.append(x)
+        new_corners_y.append(y)
+
+    new_border_top_left = (int(floor(min(new_corners_x))), int(floor(min(new_corners_y))))
+    new_border_bottom_right = (int(ceil(max(new_corners_x))), int(ceil(max(new_corners_y))))
+    new_border = [new_border_top_left, new_border_bottom_right]
+
+    h, w = new_border_bottom_right[1] - new_border_top_left[1], new_border_bottom_right[0] - new_border_top_left[0]
+
+    # calcul du nouveau masque
+    new_mask = np.zeros((h, w))
+    for i in range(h):
+        for j in range(w):
+            x_i, y_i = homography_apply(H, j, i)
+            if 0 <= round(x_i) < image.shape[1] and 0 <= round(y_i) < image.shape[0]:
+                new_mask[i, j] = mask[round(y_i), round(x_i)]
+
+    # calcul de la nouvelle image
+    new_image = np.zeros((h, w, 3), dtype=image.dtype)
+    for i in range(h):
+        for j in range(w):
+            x_i, y_i = homography_apply(H, j, i)
+            if 0 <= round(x_i) < image.shape[1] and 0 <= round(y_i) < image.shape[0]:
+                new_image[i, j] = image[round(y_i), round(x_i)]
+
+    return (new_mask, new_image, new_border)
+
 def main():
 
     # images
