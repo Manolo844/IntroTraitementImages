@@ -143,20 +143,16 @@ def mib_transform(mib, H):
 
     h, w = new_border_bottom_right[1] - new_border_top_left[1], new_border_bottom_right[0] - new_border_top_left[0]
 
-    # calcul du nouveau masque
+    # initialisation du masque et image
     new_mask = np.zeros((h, w))
+    new_image = np.zeros((h, w, 3), dtype=image.dtype)
+    
+    # calcul du nouveau masque et image
     for i in range(h):
         for j in range(w):
             x_i, y_i = homography_apply(H, j, i)
             if 0 <= round(x_i) < image.shape[1] and 0 <= round(y_i) < image.shape[0]:
                 new_mask[i, j] = mask[round(y_i), round(x_i)]
-
-    # calcul de la nouvelle image
-    new_image = np.zeros((h, w, 3), dtype=image.dtype)
-    for i in range(h):
-        for j in range(w):
-            x_i, y_i = homography_apply(H, j, i)
-            if 0 <= round(x_i) < image.shape[1] and 0 <= round(y_i) < image.shape[0]:
                 new_image[i, j] = image[round(y_i), round(x_i)]
 
     return (new_mask, new_image, new_border)
