@@ -119,6 +119,13 @@ def homography_projection(I1, I2, x, y):
                 
     return I3
 
+def i_to_mib(I):
+    h, w = I.shape[0], I.shape[1]
+    mask = np.ones((h, w))
+    image = I.copy()
+    boite = [(0,0), (w, h)]
+    return (mask, image, boite)
+
 def mib_transform(mib, H):
     # extraction des composantes
     mask = mib[0]
