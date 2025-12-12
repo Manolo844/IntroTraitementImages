@@ -130,12 +130,12 @@ def mib_transform(mib, H):
     # extraction des composantes
     mask = mib[0]
     image = mib[1]
-    border = mib[2]
-
-    corners_x = [0, image.shape[1], 0, image.shape[1]]
-    corners_y = [0, 0, image.shape[0], image.shape[0]]
+    h_src, w_src = mib[2][1][1] - mib[2][0][1], mib[2][1][0] - mib[2][0][0]
 
     # calcul de la nouvelle boite englobante
+    corners_x = [0, w_src, 0, w_src]
+    corners_y = [0, 0, h_src, h_src]
+
     new_corners_x = []
     new_corners_y = []
 
@@ -144,23 +144,44 @@ def mib_transform(mib, H):
         new_corners_x.append(x)
         new_corners_y.append(y)
 
-    new_border_top_left = (int(floor(min(new_corners_x))), int(floor(min(new_corners_y))))
-    new_border_bottom_right = (int(ceil(max(new_corners_x))), int(ceil(max(new_corners_y))))
-    new_border = [new_border_top_left, new_border_bottom_right]
+    min_x = min(new_corners_x)
+    max_x = max(new_corners_x)
+    min_y = min(new_corners_y)
+    max_y = max(new_corners_y)
 
-    h, w = new_border_bottom_right[1] - new_border_top_left[1], new_border_bottom_right[0] - new_border_top_left[0]
+    # offset = coin haut-gauche
+    offset_x = int(np.floor(min_x))
+    offset_y = int(np.floor(min_y))
 
-    # initialisation du masque et image
-    new_mask = np.zeros((h, w))
-    new_image = np.zeros((h, w, 3), dtype=image.dtype)
-    
-    # calcul du nouveau masque et image
-    for i in range(h):
-        for j in range(w):
-            x_i, y_i = homography_apply(H, j, i)
-            if 0 <= round(x_i) < image.shape[1] and 0 <= round(y_i) < image.shape[0]:
-                new_mask[i, j] = mask[round(y_i), round(x_i)]
-                new_image[i, j] = image[round(y_i), round(x_i)]
+    # taille nouvelle image
+    new_w = int(np.ceil(max_x)) - offset_x
+    new_h = int(np.ceil(max_y)) - offset_y
+
+    new_border = [(offset_x, offset_y), (offset_x + new_w, offset_y + new_h)]
+
+    # initialisation masque et image
+    new_mask = np.zeros((new_h, new_w))
+    new_image = np.zeros((new_h, new_w, 3), dtype=image.dtype)
+
+    # creation masque et image
+    H_inv = np.linalg.inv(H)
+
+    for i in range(new_h):
+        for j in range(new_w):
+            # coordonnée réelle dans le référentiel global
+            real_x = j + offset_x
+            real_y = i + offset_y
+
+            # chercher d'où ça vient dans l'image source
+            src_x, src_y = homography_apply(H_inv, real_x, real_y)
+            
+            src_x_int = int(round(src_x))
+            src_y_int = int(round(src_y))
+
+            # vérification 
+            if 0 <= src_x_int < w_src and 0 <= src_y_int < h_src:
+                new_image[i, j] = image[src_y_int, src_x_int]
+                new_mask[i, j] = mask[src_y_int, src_x_int]
 
     return (new_mask, new_image, new_border)
 
@@ -193,6 +214,8 @@ def main():
 
     image_ville1 = plt.imread('img/mosaique_ville/image1.jpg')
     image_ville2 = plt.imread('img/mosaique_ville/image2.jpg')
+    image_ville3 = plt.imread('img/mosaique_ville/image3.jpg')
+    image_ville4 = plt.imread('img/mosaique_ville/image4.jpg')
 
     points_x_ville12 = [766, 863, 653, 773]
     points_y_ville12 = [978, 1069, 1253, 1292]
@@ -212,27 +235,27 @@ def main():
     points_x_ville43 = [80, 90, 395, 434]
     points_y_ville43 = [1469, 1261, 1623, 1198]
 
-    ## Test de homography_extraction
+    # ## Test de homography_extraction
     
-    I2 = homography_extraction(image_grass, points_x_terre_side, points_y_terre_side, 400, 400)
-    plt.imshow(I2)
-    plt.show()
+    # I2 = homography_extraction(image_grass, points_x_terre_side, points_y_terre_side, 400, 400)
+    # plt.imshow(I2)
+    # plt.show()
 
-    ## Test de homography_cross_projection
+    # ## Test de homography_cross_projection
 
-    I2 = homography_cross_projection(image_grass, points_x_terre_side, points_y_terre_side, points_x_terre_top, points_y_terre_top)
-    plt.imshow(I2)
-    plt.show()
+    # I2 = homography_cross_projection(image_grass, points_x_terre_side, points_y_terre_side, points_x_terre_top, points_y_terre_top)
+    # plt.imshow(I2)
+    # plt.show()
 
-    I4 = homography_cross_projection(image_tableaux, points_x_tableaux1, points_y_tableaux1, points_x_tableaux2, points_y_tableaux2)
-    plt.imshow(I4)
-    plt.show()
+    # I4 = homography_cross_projection(image_tableaux, points_x_tableaux1, points_y_tableaux1, points_x_tableaux2, points_y_tableaux2)
+    # plt.imshow(I4)
+    # plt.show()
 
-    ## Test de homography_projection
+    # ## Test de homography_projection
 
-    I3 = homography_projection(image_grass, image_tour, points_x_tour_side, points_y_tour_side)
-    plt.imshow(I3)
-    plt.show()
+    # I3 = homography_projection(image_grass, image_tour, points_x_tour_side, points_y_tour_side)
+    # plt.imshow(I3)
+    # plt.show()
 
     ## Test de mosaique
 
@@ -245,10 +268,42 @@ def main():
     H12 = homography_estimate(points_x_ville12, points_y_ville12, points_x_ville21, points_y_ville21)
     H23 = homography_estimate(points_x_ville23, points_y_ville23, points_x_ville32, points_y_ville32)
     H34 = homography_estimate(points_x_ville34, points_y_ville34, points_x_ville43, points_y_ville43)
-    list_H = [H12, H23, H34]
+    
+    H1_to_4 = H34 @ H23 @ H12
+    H2_to_4 = H34 @ H23
+    H3_to_4 = H34
 
-    image_global = mib_fusion(list_mib, list_H)
-    plt.imshow(image_global)
+    print("Transformation image 1")
+    mib1_transform = mib_transform(mib1, H1_to_4)
+    print("Transformation image 2")
+    mib2_transform = mib_transform(mib2, H2_to_4)
+    print("Transformation image 3")
+    mib3_transform = mib_transform(mib3, H3_to_4)
+    mib4_transform = mib4
+
+    image1_result = mib1_transform[1]
+    image2_result = mib2_transform[1]
+    image3_result = mib3_transform[1]
+    image4_result = mib4_transform[1]
+
+    # affichage
+    figure = plt.figure(figsize=(10, 10))
+    figure.add_subplot(2, 2, 1)
+    plt.title("Image 1 projettée sur 4")
+    plt.imshow(image1_result)
+    
+    figure.add_subplot(2, 2, 2)
+    plt.title("Image 2 projettée sur 4")
+    plt.imshow(image2_result)
+    
+    figure.add_subplot(2, 2, 3)
+    plt.title("Image 3 projettée sur 4")
+    plt.imshow(image3_result)
+    
+    figure.add_subplot(2, 2, 4)
+    plt.title("Image 4 (Référence)")
+    plt.imshow(image4_result)
+    
     plt.show()
 
 if __name__ == '__main__':
