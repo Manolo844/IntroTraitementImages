@@ -184,6 +184,26 @@ def main():
     points_x_tableaux2 = [93, 328, 94, 329]
     points_y_tableaux2 = [181, 212, 550, 520]
 
+    image_ville1 = plt.imread('img/mosaique_ville/image1.jpg')
+    image_ville2 = plt.imread('img/mosaique_ville/image2.jpg')
+
+    points_x_ville12 = [766, 863, 653, 773]
+    points_y_ville12 = [978, 1069, 1253, 1292]
+
+    points_x_ville21 = [366, 498, 382, 507]
+    points_y_ville21 = [1161, 1206, 1461, 1446]
+
+    points_x_ville23 = [948, 1222, 962, 1238]
+    points_y_ville23 = [1032, 1008, 1398, 1381]
+
+    points_x_ville32 = [557, 602, 194, 231]
+    points_y_ville32 = [65, 334, 106, 380]
+
+    points_x_ville34 = [1132, 1184, 786, 872]
+    points_y_ville34 = [1013, 1215, 957, 1376]
+
+    points_x_ville43 = [80, 90, 395, 434]
+    points_y_ville43 = [1469, 1261, 1623, 1198]
 
     ## Test de homography_extraction
     
@@ -205,6 +225,23 @@ def main():
 
     I3 = homography_projection(image_grass, image_tour, points_x_tour_side, points_y_tour_side)
     plt.imshow(I3)
+    plt.show()
+
+    ## Test de mosaique
+
+    mib1 = i_to_mib(image_ville1)
+    mib2 = i_to_mib(image_ville2)
+    mib3 = i_to_mib(image_ville3)
+    mib4 = i_to_mib(image_ville4)
+    list_mib = [mib1, mib2, mib3, mib4]
+
+    H12 = homography_estimate(points_x_ville12, points_y_ville12, points_x_ville21, points_y_ville21)
+    H23 = homography_estimate(points_x_ville23, points_y_ville23, points_x_ville32, points_y_ville32)
+    H34 = homography_estimate(points_x_ville34, points_y_ville34, points_x_ville43, points_y_ville43)
+    list_H = [H12, H23, H34]
+
+    image_global = mib_fusion(list_mib, list_H)
+    plt.imshow(image_global)
     plt.show()
 
 if __name__ == '__main__':
