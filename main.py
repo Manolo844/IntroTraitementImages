@@ -36,11 +36,11 @@ def main():
     image_ville3 = plt.imread('img/mosaique_ville/image3.jpg')
     image_ville4 = plt.imread('img/mosaique_ville/image4.jpg')
 
-    points_x_ville12 = [766, 863, 653, 773]
-    points_y_ville12 = [978, 1069, 1253, 1292]
+    points_x_ville12 = [732, 867, 528, 782]
+    points_y_ville12 = [719, 1070, 1153, 1295]
 
-    points_x_ville21 = [366, 498, 382, 507]
-    points_y_ville21 = [1161, 1206, 1461, 1446]
+    points_x_ville21 = [229, 499, 227, 516]
+    points_y_ville21 = [943, 1206, 1422, 1445]
 
     points_x_ville23 = [948, 1222, 962, 1238]
     points_y_ville23 = [1032, 1008, 1398, 1381]
@@ -54,27 +54,31 @@ def main():
     points_x_ville43 = [80, 90, 395, 434]
     points_y_ville43 = [1469, 1261, 1623, 1198]
 
-    # ## Test de homography_extraction
+    ## Test de homography_extraction
     
-    # I2 = p.homography_extraction(image_grass, points_x_terre_side, points_y_terre_side, 400, 400)
-    # plt.imshow(I2)
-    # plt.show()
+    I2 = p.homography_extraction(image_grass, points_x_terre_side, points_y_terre_side, 400, 400)
+    plt.imshow(I2)
+    plt.title("Test pour extraction")
+    plt.show()
 
-    # ## Test de homography_cross_projection
+    ## Test de homography_cross_projection
 
-    # I2 = p.homography_cross_projection(image_grass, points_x_terre_side, points_y_terre_side, points_x_terre_top, points_y_terre_top)
-    # plt.imshow(I2)
-    # plt.show()
+    I2 = p.homography_cross_projection(image_grass, points_x_terre_side, points_y_terre_side, points_x_terre_top, points_y_terre_top)
+    plt.imshow(I2)
+    plt.title("Test pour cross projection")
+    plt.show()
 
-    # I4 = p.homography_cross_projection(image_tableaux, points_x_tableaux1, points_y_tableaux1, points_x_tableaux2, points_y_tableaux2)
-    # plt.imshow(I4)
-    # plt.show()
+    I4 = p.homography_cross_projection(image_tableaux, points_x_tableaux1, points_y_tableaux1, points_x_tableaux2, points_y_tableaux2)
+    plt.imshow(I4)
+    plt.title("Test pour cross projection")
+    plt.show()
 
-    # ## Test de homography_projection
+    ## Test de homography_projection
 
-    # I3 = p.homography_projection(image_grass, image_tour, points_x_tour_side, points_y_tour_side)
-    # plt.imshow(I3)
-    # plt.show()
+    I3 = p.homography_projection(image_grass, image_tour, points_x_tour_side, points_y_tour_side)
+    plt.imshow(I3)
+    plt.title("Test pour projection")
+    plt.show()
 
     ## Test de mosaique
 
@@ -112,6 +116,7 @@ def main():
     # affichage
 
     plt.imshow(image_global)
+    plt.title("Test pour mosaique : Image globale")
     plt.show()
 
     figure = plt.figure(figsize=(10, 10))
