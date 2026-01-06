@@ -185,6 +185,59 @@ def mib_transform(mib, H):
 
     return (new_mask, new_image, new_border)
 
+def mib_fusion_couple(mib1, mib2):
+    mask1, img1, border1 = mib1
+    mask2, img2, border2 = mib2
+
+    min_x = min(border1[0][0], border2[0][0])
+    min_y = min(border1[0][1], border2[0][1])
+    max_x = max(border1[1][0], border2[1][0])
+    max_y = max(border1[1][1], border2[1][1])
+
+    final_img = np.zeros((max_y - min_y, max_x - min_x, 3), dtype=np.float32)
+    final_mask = np.zeros((max_y - min_y, max_x - min_x), dtype=np.float32)
+
+    for y_global in range(min_y, max_y):
+        for x_global in range(min_x, max_x):
+            pixel_sum = np.zeros(3)
+            weight_sum = 0          
+
+            #verifier si dans image 1
+            y1_local = y_global - border1[0][1]
+            x1_local = x_global - border1[0][0]
+
+            if 0 <= x1_local < img1.shape[1] and 0 <= y1_local < img1.shape[0]:
+                if mask1[y1_local, x1_local] == 1:
+                    pixel_sum += img1[y1_local, x1_local]
+                    weight_sum += 1
+            
+            #verifier si dans image 2
+            y2_local = y_global - border2[0][1]
+            x2_local = x_global - border2[0][0]
+
+            if 0 <= x2_local < img2.shape[1] and 0 <= y2_local < img2.shape[0]:
+                if mask2[y2_local, x2_local] == 1:
+                    pixel_sum += img2[y2_local, x2_local]
+                    weight_sum += 1
+
+            y_final = y_global - min_y
+            x_final = x_global - min_x
+            
+            #si dans les deux images
+            if weight_sum > 0:
+                final_img[y_final, x_final] = pixel_sum / weight_sum
+                final_mask[y_final, x_final] = 1
+
+    final_border = [(min_x, min_y), (max_x, max_y)]
+    
+    return (final_mask, final_img.astype(np.uint8), final_border)
+
+def mib_fusion(list_mib):
+    mib_global = list_mib[0]
+    for mib in list_mib[1:]:
+        mib_global = mib_fusion_couple(mib_global, mib)
+    return mib_global
+
 def main():
 
     # images
@@ -286,7 +339,13 @@ def main():
     image3_result = mib3_transform[1]
     image4_result = mib4_transform[1]
 
+    image_global = mib_fusion([mib1_transform, mib2_transform, mib3_transform, mib4_transform])[1]
+
     # affichage
+
+    plt.imshow(image_global)
+    plt.show()
+
     figure = plt.figure(figsize=(10, 10))
     figure.add_subplot(2, 2, 1)
     plt.title("Image 1 projettée sur 4")
