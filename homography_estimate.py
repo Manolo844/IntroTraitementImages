@@ -1,29 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def cross_product(A, B, C):
-    # fait le produit vectoriel de AB et AC
-    res = (B[0] - A[0]) * (C[1] - A[1]) - (B[1] - A[1]) * (C[0] - A[0])
-    return res
-
-def is_in_quadrangle(X, Y, x, y):
-    # X et Y sont les vecteurs des abscisses et ordonnées des points
-    # on teste si P est dans le quadrangle ABCD /!\ doivent être dans l'ordre
-    A = [X[0], Y[0]]
-    B = [X[1], Y[1]]
-    D = [X[2], Y[2]]
-    C = [X[3], Y[3]]
-    P = [x, y]
-
-    cp1 = cross_product(A, B, P)
-    cp2 = cross_product(B, C, P)
-    cp3 = cross_product(C, D, P)
-    cp4 = cross_product(D, A, P)
-
-    cond = (cp1 >= 0 and cp2 >= 0 and cp3 >= 0 and cp4 >= 0) or (cp1 <= 0 and cp2 <= 0 and cp3 <= 0 and cp4 <= 0)
-    return cond
-
-
 def is_in_quadrangle_homography(H, x, y, size=100):
     u, v = homography_apply(H, x, y)
     return (0 <= u <= size) and (0 <= v <= size)
