@@ -41,7 +41,7 @@ def main():
 
     # liste des couleurs
     colors = [[255, 0, 0], [255, 255, 0], [0, 255, 0], [255, 0, 255], [255, 192, 192], [192, 255, 192], [0, 0, 255], [192, 192, 255], [0, 0, 0]]
-    colors_str = [("rouge",0.0), ("jaune",0.0), ("vert",0.0), ("violet",0.0), ("rose",0.0), ("vert pâle",0.0), ("bleu",0.0), ("gris",0.0), ("noir",0.0)]
+    colors_str = [("rouge",0.0), ("jaune",0.0), ("vert",0.0), ("magenta",0.0), ("saumon",0.0), ("vert pâle",0.0), ("bleu",0.0), ("gris",0.0), ("noir",0.0)]
     count = []
 
     # comptage des pixels
